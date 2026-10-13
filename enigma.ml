@@ -58,8 +58,39 @@ let rec map_plug plugs c =
       else if c = right then left
       else map_plug rest c
 
-let cipher_char _config _c =
-  failwith "Unimplemented"
+(** [map_rotors_r_to_l rotors input_pos] passes [input_pos] through [rotors]
+    from the keyboard side toward the reflector. [rotors] is ordered left to
+    right. *)
+let rec map_rotors_r_to_l rotors input_pos =
+  match rotors with
+  | [] -> input_pos
+  | oriented :: rest ->
+      let from_right = map_rotors_r_to_l rest input_pos in
+      map_r_to_l oriented.rotor.wiring oriented.top_letter from_right
+
+(** [map_rotors_l_to_r rotors input_pos] passes [input_pos] through [rotors]
+    from the reflector side toward the keyboard. [rotors] is ordered left to
+    right. *)
+let rec map_rotors_l_to_r rotors input_pos =
+  match rotors with
+  | [] -> input_pos
+  | oriented :: rest ->
+      let from_left =
+        map_l_to_r oriented.rotor.wiring oriented.top_letter input_pos
+      in
+      map_rotors_l_to_r rest from_left
+
+let cipher_char config c =
+  let plugged_input = map_plug config.plugboard c in
+  let reflected_position =
+    index plugged_input
+    |> map_rotors_r_to_l config.rotors
+    |> map_refl config.refl
+  in
+  reflected_position
+  |> map_rotors_l_to_r config.rotors
+  |> letter
+  |> map_plug config.plugboard
 
 let step _config =
   failwith "Unimplemented"

@@ -25,6 +25,20 @@ let plugboard_test name plugs input expected =
   name >:: fun _ ->
   assert_equal ~printer:char_printer expected (map_plug plugs input)
 
+let cipher_char_test name config input expected =
+  name >:: fun _ ->
+  assert_equal ~printer:char_printer expected (cipher_char config input)
+
+let oriented rotor top_letter = { rotor; top_letter }
+
+let static_config =
+  {
+    refl = reflector_b;
+    rotors =
+      [ oriented rotor_i 'A'; oriented rotor_ii 'A'; oriented rotor_iii 'A' ];
+    plugboard = [];
+  }
+
 let suite =
   "Enigma test suite" >::: [
     index_test "index of A is 0" 'A' 0;
@@ -77,6 +91,21 @@ let suite =
       [ ('A', 'Z'); ('X', 'Y') ] 'Y' 'X';
     plugboard_test "plugboard leaves an unconnected letter unchanged"
       [ ('A', 'Z'); ('X', 'Y') ] 'Q' 'Q';
+    cipher_char_test "identity machine leaves A unchanged"
+      { refl = identity; rotors = []; plugboard = [] }
+      'A' 'A';
+    cipher_char_test "reflector-only machine maps A to Y"
+      { refl = reflector_b; rotors = []; plugboard = [] }
+      'A' 'Y';
+    cipher_char_test "historical static machine maps A to U"
+      static_config 'A' 'U';
+    cipher_char_test "historical static machine maps G to P"
+      static_config 'G' 'P';
+    cipher_char_test "historical static machine maps Z to H"
+      static_config 'Z' 'H';
+    cipher_char_test "plugboard is applied on both sides"
+      { static_config with plugboard = [ ('A', 'Z') ] }
+      'H' 'A';
   ]
 
 let () = run_test_tt_main suite
