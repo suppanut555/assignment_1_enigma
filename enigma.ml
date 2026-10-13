@@ -16,11 +16,37 @@ type config = {
 
 let index c = Char.code c - Char.code 'A'
 
-let map_r_to_l _wiring _top_letter _input_pos =
-  failwith "Unimplemented"
+let alphabet_size = 26
 
-let map_l_to_r _wiring _top_letter _input_pos =
-  failwith "Unimplemented"
+(** [normalize_position position] wraps [position] into the range 0 through
+    25. *)
+let normalize_position position =
+  let remainder = position mod alphabet_size in
+  if remainder < 0 then remainder + alphabet_size else remainder
+
+(** [letter position] is the uppercase letter at [position].
+    Requires: [position] is in the range 0 through 25. *)
+let letter position = Char.chr (Char.code 'A' + position)
+
+let map_r_to_l wiring top_letter input_pos =
+  let offset = index top_letter in
+  let rotor_contact = normalize_position (input_pos + offset) in
+  let wired_contact = index wiring.[rotor_contact] in
+  normalize_position (wired_contact - offset)
+
+(** [find_letter wiring target] is the position of [target] in [wiring].
+    Requires: [target] occurs in [wiring]. *)
+let find_letter wiring target =
+  let rec search position =
+    if wiring.[position] = target then position else search (position + 1)
+  in
+  search 0
+
+let map_l_to_r wiring top_letter input_pos =
+  let offset = index top_letter in
+  let rotor_contact = normalize_position (input_pos + offset) in
+  let wired_contact = find_letter wiring (letter rotor_contact) in
+  normalize_position (wired_contact - offset)
 
 let map_refl _wiring _input_pos =
   failwith "Unimplemented"
