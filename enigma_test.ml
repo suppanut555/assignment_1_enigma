@@ -19,6 +19,12 @@ let reflector_test name wiring input expected =
   name >:: fun _ ->
   assert_equal ~printer:string_of_int expected (map_refl wiring input)
 
+let char_printer c = String.make 1 c
+
+let plugboard_test name plugs input expected =
+  name >:: fun _ ->
+  assert_equal ~printer:char_printer expected (map_plug plugs input)
+
 let suite =
   "Enigma test suite" >::: [
     index_test "index of A is 0" 'A' 0;
@@ -62,6 +68,15 @@ let suite =
       5 18;
     reflector_test "reflector B maps Y contact back to A contact"
       reflector_b 24 0;
+    plugboard_test "empty plugboard leaves M unchanged" [] 'M' 'M';
+    plugboard_test "plugboard AZ maps A to Z" [ ('A', 'Z') ] 'A' 'Z';
+    plugboard_test "plugboard AZ maps Z to A" [ ('A', 'Z') ] 'Z' 'A';
+    plugboard_test "plugboard finds X in a later pair"
+      [ ('A', 'Z'); ('X', 'Y') ] 'X' 'Y';
+    plugboard_test "plugboard maps second endpoint in a later pair"
+      [ ('A', 'Z'); ('X', 'Y') ] 'Y' 'X';
+    plugboard_test "plugboard leaves an unconnected letter unchanged"
+      [ ('A', 'Z'); ('X', 'Y') ] 'Q' 'Q';
   ]
 
 let () = run_test_tt_main suite

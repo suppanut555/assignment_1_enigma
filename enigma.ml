@@ -50,8 +50,13 @@ let map_l_to_r wiring top_letter input_pos =
 
 let map_refl wiring input_pos = index wiring.[input_pos]
 
-let map_plug _plugs _c =
-  failwith "Unimplemented"
+let rec map_plug plugs c =
+  match plugs with
+  | [] -> c
+  | (left, right) :: rest ->
+      if c = left then right
+      else if c = right then left
+      else map_plug rest c
 
 let cipher_char _config _c =
   failwith "Unimplemented"
