@@ -8,8 +8,7 @@ let rotor_iii = { wiring = "BDFHJLCPRTXVZNYEIWGAKMUSQO"; turnover = 'V' }
 let reflector_b = "YRUHQSLDPXNGOKMIEBFZCWVJAT"
 
 let index_test name input expected =
-  name >:: fun _ ->
-    assert_equal expected (index input)
+  name >:: fun _ -> assert_equal ~printer:string_of_int expected (index input)
 
 let rotor_map_test name map wiring top_letter input expected =
   name >:: fun _ ->

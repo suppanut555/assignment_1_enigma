@@ -28,3 +28,17 @@ will report the mismatch.
 Begin with `index`, add a failing test in `enigma_test.ml`, then implement
 the function and rerun `dune test`.
 
+## Implemented behavior
+
+The implementation provides all eight required functions using immutable data:
+
+- bidirectional rotor mappings with rotational offsets;
+- reflector and plugboard mappings;
+- complete signal traversal through any number of rotors;
+- simultaneous turnover and double-step behavior; and
+- whole-string encryption with stepping before each character.
+
+The OUnit2 suite contains 47 tests covering identity and historical wirings,
+rotation and wraparound, plugboard pairs, turnover transitions, full-message
+encryption, and reciprocal decryption.
+
