@@ -39,6 +39,29 @@ let static_config =
     plugboard = [];
   }
 
+let tops config =
+  config.rotors
+  |> List.map (fun oriented -> oriented.top_letter)
+  |> List.to_seq |> String.of_seq
+
+let step_test name config expected_tops =
+  name >:: fun _ ->
+  assert_equal ~printer:(fun value -> value) expected_tops (tops (step config))
+
+let stepping_config top_letters =
+  let rec combine rotors letters =
+    match (rotors, letters) with
+    | [], [] -> []
+    | rotor :: rotor_rest, top_letter :: letter_rest ->
+        oriented rotor top_letter :: combine rotor_rest letter_rest
+    | _ -> invalid_arg "rotor and top-letter counts differ"
+  in
+  {
+    refl = reflector_b;
+    rotors = combine [ rotor_iii; rotor_ii; rotor_i ] top_letters;
+    plugboard = [];
+  }
+
 let suite =
   "Enigma test suite" >::: [
     index_test "index of A is 0" 'A' 0;
@@ -106,6 +129,32 @@ let suite =
     cipher_char_test "plugboard is applied on both sides"
       { static_config with plugboard = [ ('A', 'Z') ] }
       'H' 'A';
+    step_test "machine with no rotors remains empty"
+      { refl = identity; rotors = []; plugboard = [] }
+      "";
+    step_test "single rightmost rotor always steps"
+      {
+        refl = identity;
+        rotors = [ oriented rotor_i 'A' ];
+        plugboard = [];
+      }
+      "B";
+    step_test "rightmost rotor wraps from Z to A"
+      {
+        refl = identity;
+        rotors = [ oriented rotor_i 'Z' ];
+        plugboard = [];
+      }
+      "A";
+    step_test "ordinary step changes only the rightmost rotor"
+      (stepping_config [ 'K'; 'D'; 'O' ])
+      "KDP";
+    step_test "rightmost turnover also steps its left neighbor"
+      (stepping_config [ 'K'; 'D'; 'Q' ])
+      "KER";
+    step_test "middle turnover produces a double-step transition"
+      (stepping_config [ 'K'; 'E'; 'R' ])
+      "LFS";
   ]
 
 let () = run_test_tt_main suite

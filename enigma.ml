@@ -92,8 +92,39 @@ let cipher_char config c =
   |> letter
   |> map_plug config.plugboard
 
-let step _config =
-  failwith "Unimplemented"
+(** [next_letter c] is the letter after [c], wrapping ['Z'] to ['A']. *)
+let next_letter c = letter (normalize_position (index c + 1))
+
+(** [step_rotors rotors] applies one simultaneous stepping event. A rotor
+    steps when it is rightmost, is a non-leftmost rotor at turnover, or has a
+    right neighbor at turnover. *)
+let step_rotors rotors =
+  let rec apply is_leftmost remaining =
+    match remaining with
+    | [] -> []
+    | oriented :: rest ->
+        let is_rightmost = rest = [] in
+        let at_own_turnover =
+          (not is_leftmost)
+          && oriented.top_letter = oriented.rotor.turnover
+        in
+        let right_neighbor_at_turnover =
+          match rest with
+          | [] -> false
+          | right :: _ -> right.top_letter = right.rotor.turnover
+        in
+        let should_step =
+          is_rightmost || at_own_turnover || right_neighbor_at_turnover
+        in
+        let top_letter =
+          if should_step then next_letter oriented.top_letter
+          else oriented.top_letter
+        in
+        { oriented with top_letter } :: apply false rest
+  in
+  apply true rotors
+
+let step config = { config with rotors = step_rotors config.rotors }
 
 let cipher _config _s =
   failwith "Unimplemented"
