@@ -126,7 +126,15 @@ let step_rotors rotors =
 
 let step config = { config with rotors = step_rotors config.rotors }
 
-let cipher _config _s =
-  failwith "Unimplemented"
+let cipher config s =
+  let rec encipher current_config remaining =
+    match remaining with
+    | [] -> []
+    | c :: rest ->
+        let stepped_config = step current_config in
+        cipher_char stepped_config c :: encipher stepped_config rest
+  in
+  s |> String.to_seq |> List.of_seq |> encipher config |> List.to_seq
+  |> String.of_seq
 
 let hours_worked = 0

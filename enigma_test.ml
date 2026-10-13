@@ -62,6 +62,18 @@ let stepping_config top_letters =
     plugboard = [];
   }
 
+let cipher_test name config input expected =
+  name >:: fun _ ->
+  assert_equal ~printer:(fun value -> value) expected (cipher config input)
+
+let full_config =
+  {
+    refl = reflector_b;
+    rotors =
+      [ oriented rotor_i 'F'; oriented rotor_ii 'U'; oriented rotor_iii 'N' ];
+    plugboard = [ ('A', 'Z') ];
+  }
+
 let suite =
   "Enigma test suite" >::: [
     index_test "index of A is 0" 'A' 0;
@@ -155,6 +167,24 @@ let suite =
     step_test "middle turnover produces a double-step transition"
       (stepping_config [ 'K'; 'E'; 'R' ])
       "LFS";
+    cipher_test "empty plaintext produces empty ciphertext" full_config
+      "" "";
+    cipher_test "identity machine enciphers multiple letters unchanged"
+      { refl = identity; rotors = []; plugboard = [] }
+      "AZBY" "AZBY";
+    cipher_test "reflector-only machine enciphers each character"
+      { refl = reflector_b; rotors = []; plugboard = [] }
+      "ABC" "YRU";
+    cipher_test "full historical configuration reveals OCAML"
+      full_config "YNGXQ" "OCAML";
+    cipher_test "same starting configuration decrypts ciphertext"
+      full_config "OCAML" "YNGXQ";
+    ("full cipher is reciprocal from the same initial state"
+    >:: fun _ ->
+    let plaintext = "HELLOWORLD" in
+    let ciphertext = cipher full_config plaintext in
+    assert_equal ~printer:(fun value -> value) plaintext
+      (cipher full_config ciphertext));
   ]
 
 let () = run_test_tt_main suite
