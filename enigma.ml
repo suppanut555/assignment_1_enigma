@@ -48,8 +48,7 @@ let map_l_to_r wiring top_letter input_pos =
   let wired_contact = find_letter wiring (letter rotor_contact) in
   normalize_position (wired_contact - offset)
 
-let map_refl _wiring _input_pos =
-  failwith "Unimplemented"
+let map_refl wiring input_pos = index wiring.[input_pos]
 
 let map_plug _plugs _c =
   failwith "Unimplemented"

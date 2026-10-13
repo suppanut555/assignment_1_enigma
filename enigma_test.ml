@@ -15,6 +15,10 @@ let rotor_map_test name map wiring top_letter input expected =
   name >:: fun _ ->
   assert_equal ~printer:string_of_int expected (map wiring top_letter input)
 
+let reflector_test name wiring input expected =
+  name >:: fun _ ->
+  assert_equal ~printer:string_of_int expected (map_refl wiring input)
+
 let suite =
   "Enigma test suite" >::: [
     index_test "index of A is 0" 'A' 0;
@@ -46,6 +50,18 @@ let suite =
       map_l_to_r rotor_i.wiring 'A' 0 20;
     rotor_map_test "rotor I at F reverse maps position 10 to 14"
       map_l_to_r rotor_i.wiring 'F' 10 14;
+    reflector_test "identity reflector maps position 0 to itself"
+      identity 0 0;
+    reflector_test "identity reflector maps middle position to itself"
+      identity 12 12;
+    reflector_test "identity reflector maps position 25 to itself"
+      identity 25 25;
+    reflector_test "reflector B maps A contact to Y contact" reflector_b
+      0 24;
+    reflector_test "reflector B maps F contact to S contact" reflector_b
+      5 18;
+    reflector_test "reflector B maps Y contact back to A contact"
+      reflector_b 24 0;
   ]
 
 let () = run_test_tt_main suite
